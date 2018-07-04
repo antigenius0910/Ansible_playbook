@@ -1,0 +1,26 @@
+---
+- hosts: server
+  become: true  # use sudo
+  tasks:
+
+     - name: Install CUDA package.
+       yum:
+         name: https://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/cuda-repo-rhel7-9.2.88-1.x86_64.rpm
+         state: present
+
+     - name: cleaning task for yum
+       command: /usr/bin/yum clean all
+
+     - name: Install cuda driver
+       yum: name=cuda update_cache=yes state=present
+
+     - name: Add global $PATH for cuda
+       lineinfile:
+         dest: /etc/profile
+         line: '{{ item }}'
+         insertafter: 'unset -f pathmunge'
+       with_items:
+         - 'export PATH=/usr/local/cuda-9.2/bin${PATH:+:${PATH}}$:/bin'
+         - 'export LD_LIBRARY_PATH=/usr/local/cuda-9.2/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}'
+       tags:
+         - cuda
