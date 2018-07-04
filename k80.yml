@@ -1,0 +1,23 @@
+---
+- hosts: server
+  become: true  # use sudo
+  tasks:
+
+     - name: install wget
+       yum: name=wget update_cache=yes state=present
+       tags:
+        - wget
+
+     - name: Install RPM from URL
+       command: rpm -i http://us.download.nvidia.com/tesla/396.26/nvidia-diag-driver-local-repo-rhel7-396.26-1.0-1.x86_64.rpm
+
+     - name: cleaning task for yum
+       command: /usr/bin/yum clean all
+
+     - name: Install cuda driver
+       yum: name=cuda-drivers update_cache=yes state=present
+
+     - name: Set Nvidia-smi persistence
+       command: /usr/bin/nvidia-persistenced --persistence-mode
+       tags:
+        - persistence
