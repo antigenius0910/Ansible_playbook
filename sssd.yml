@@ -1,0 +1,92 @@
+---
+- hosts: server
+  become: true  # use sudo
+  vars_prompt:
+    - name: "bind_username"
+      prompt: "Username for AD administrator"
+      private: no
+  #vars_prompt:
+    - name: "bind_password"
+      prompt: "Password for AD administrator"
+      private: yes
+
+  tasks:
+
+    - name: Add EPEL repository
+      yum_repository:
+        name: epel
+        description: EPEL YUM repo
+        baseurl: https://download.fedoraproject.org/pub/epel/$releasever/$basearch/
+        gpgcheck: no
+        enabled: yes
+      tags:
+        - EPEL
+
+    - name: install python2-pip
+      yum: name=python2-pip update_cache=yes state=present
+      tags:
+        - python2-pip
+
+    - name: install sssd
+      yum: pkg={{item}} update_cache=yes state=latest
+      with_items:
+      - sssd
+      - realmd
+      - oddjob
+      - oddjob-mkhomedir
+      - adcli
+      - samba-common
+      - samba-common-tools
+      - krb5-workstation
+      - openldap-clients
+      - policycoreutils-python
+      - libselinux-python
+      tags:
+        - sssd
+
+    - name: Install pexpect using pip
+      pip:
+        name: pexpect
+      tags:
+        - pexpect
+
+    - name: Check if machine is bound
+      shell: /bin/bash -c "realm list | grep sssd"
+      register: realmd_bound
+      changed_when: false
+      ignore_errors: true
+      tags:
+        - bound
+
+    - name: Join system to AD and put the computer object in the Linux OU
+      expect:
+        command: /bin/bash -c "/usr/sbin/realm join --user={{bind_username}}@sparkcognition.com"
+        responses:
+          Password for *: "{{ bind_password }}"
+      when: realmd_bound is failed
+      tags:
+        - join
+
+    - name: create sssd.conf file
+      template: src=sssd.conf dest=/etc/sssd/sssd.conf mode=0600
+      when: realmd_bound is failed
+      tags:
+        - sssd.conf
+
+    - name: Add ad group to sudoers
+      lineinfile:
+        dest: /etc/sudoers
+        line: '{{ item }}'
+        insertafter: '^%wheel'
+      with_items:
+        - '%linuxadmins    ALL=(ALL)       ALL'
+        - '%it    ALL=(ALL)       ALL'
+      when: realmd_bound is failed
+      tags:
+        - sudoers
+
+    - name: restart sssd
+      service: name=sssd state=restarted
+      when: realmd_bound is failed
+      tags:
+        - restart
