@@ -1,0 +1,47 @@
+---
+- hosts: server
+  become: true  # use sudo
+  tasks:
+
+    - name: install nfs-utils
+      yum: name=nfs-utils update_cache=yes state=present
+      tags:
+        - nfs-utils
+
+    - name: Creates directory
+      file: path=/remote.bin state=directory
+
+    - name: mount remote.bin
+      mount:
+        path: /remote.bin
+        src: 192.168.5.30:/volume1/Shared_Home/bin
+        fstype: nfs
+        state: mounted
+
+    - name: run apply_AD_change.sh
+      shell: /remote.bin/apply_AD_change.sh
+      args:
+         executable: /bin/bash
+      tags:
+        - apply_ad
+
+    - name: run transfer_user_home.sh
+      shell: /remote.bin/transfer_user_home.sh
+      args:
+         executable: /bin/bash
+      tags:
+        - transfer_user_home
+
+    - name: run final_rsync.sh
+      shell:  /remote.bin/final_rsync.sh
+      args:
+         executable: /bin/bash
+      tags:
+        - final_rsynch
+
+    - name: run cut_over.sh
+      shell:  /remote.bin/cut_over.sh
+      args:
+         executable: /bin/bash
+      tags:
+        - cut_over
