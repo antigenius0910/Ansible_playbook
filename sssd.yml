@@ -60,7 +60,7 @@
 
     - name: Join system to AD and put the computer object in the Linux OU
       expect:
-        command: /bin/bash -c "/usr/sbin/realm join --user={{bind_username}}@sparkcognition.com"
+        command: /bin/bash -c "/usr/sbin/realm join --user={{bind_username}}@XXXXX.com"
         responses:
           Password for *: "{{ bind_password }}"
       when: realmd_bound is failed
