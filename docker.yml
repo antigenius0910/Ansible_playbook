@@ -1,0 +1,100 @@
+#current problem 
+#1. disble GPG key check for nvidia-docker repository
+#2. nvidia-docker repository
+
+---
+- hosts: server
+  become: true  # use sudo
+  tasks:
+
+    - name: cleaning task for yum
+      command: /usr/bin/yum clean all
+
+    - name: install tool
+      yum: pkg={{item}} update_cache=yes state=latest
+      with_items:
+      - yum-utils
+      - device-mapper-persistent-data
+      - lvm2
+
+#    - name: Add docker repository
+#      yum_repository:
+#        name: docker-ce
+#        description: docker YUM repo
+#        baseurl: https://download.docker.com/linux/centos/
+#        gpgcheck: no
+#        enabled: yes
+#      tags:
+#        - docker_repo
+
+    - name: Add docker repository
+      shell: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+      args:
+         executable: /bin/bash
+      tags:
+        - docker_repo
+
+    - name: install docker
+      yum: name=docker-ce update_cache=yes state=present
+      tags:
+        - docker-ce
+
+    - name: remove docker repository
+      shell: yum-config-manager --disable nvidia-docker
+      args:
+         executable: /bin/bash
+      tags:
+        - remove_docker_repo
+
+    - name: Download docker-compose
+      get_url:
+        url: https://github.com/docker/compose/releases/download/1.21.2/docker-compose-Linux-x86_64 
+        dest: /usr/local/bin/docker-compose
+        mode: 0755
+
+#    - name: Add nvidia-docker repository
+#      yum_repository:
+#        name: nvidia-docker
+#        description: nvidia-docker
+#        baseurl: https://nvidia.github.io/nvidia-docker/centos7/$basearch
+#        gpgcheck: no
+#        enabled: yes
+#      tags:
+#        - nvidia-docker_repo
+
+    - name: Add nvidia-docker repository
+      shell: curl -s -L https://nvidia.github.io/nvidia-docker/centos7/nvidia-docker.repo |   sudo tee /etc/yum.repos.d/nvidia-docker.repo
+      args:
+         executable: /bin/bash
+      tags:
+         - add nvidia_docker_repo
+
+#    - name: install nvidia-docker2
+#      yum: name=nvidia-docker2 update_cache=yes state=present
+#      tags:
+#        - nvidia-docker2
+
+    - name: install nvidia-docker2
+      command: yum -y install {{ item }}
+      with_items: [nvidia-docker2]
+      tags:
+        - nvidia-docker2
+
+    - name: create /etc/docker/daemon.json file
+      template: src=daemon.json dest=/etc/docker/daemon.json mode=0644
+     # when: realmd_bound is failed
+      tags:
+        - daemon.json
+   
+    - name: Add docker group to 207401333
+      shell: echo 'docker:x:207401333:' >> /etc/group
+      args:
+        executable: /bin/bash
+      tags:
+       - groupadd
+
+    - name: Restart docker, for group to kick in
+      service:
+         name: docker
+         state: restarted
+         enabled: yes
