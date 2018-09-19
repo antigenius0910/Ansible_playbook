@@ -1,0 +1,62 @@
+---
+- hosts: server
+  become: true  # use sudo
+
+  tasks:
+
+     - stat: path=/opt/cuda_9.0.176_384.81_linux-run
+       register: cuda_run
+
+#     - name: download CUDA run file
+#       get_url:
+#          url: https://developer.nvidia.com/compute/cuda/9.0/Prod/local_installers/cuda_9.0.176_384.81_linux-run
+#          dest: /opt/cuda_9.0.176_384.81_linux-run
+#       when: not foo_var.stat.exists
+
+     - name: download CUDA run file
+       copy:
+         src: /remote.bin/ansible/cuda_9.0.176_384.81_linux-run
+         dest: /opt/cuda_9.0.176_384.81_linux-run
+       when: not cuda_run.stat.exists
+       tags :
+        - download
+
+     - name: Install CUDA from run file
+       command: sh /opt/cuda_9.0.176_384.81_linux-run --silent --toolkit --toolkitpath=/usr/local/cuda-9.0
+
+#     - name: Download cuDNN_7.1
+#       get_url: 
+#          url:  http://developer.download.nvidia.com/compute/redist/cudnn/v7.1.4/cudnn-9.0-linux-x64-v7.1.tgz
+#          dest: /opt/cudnn-9.0-linux-x64-v7.1.tgz
+
+     - name: Download cuDNN_7.1
+       copy:
+         src: /remote.bin/ansible/cudnn-9.0-linux-x64-v7.1.tgz
+         dest: /opt/cudnn-9.0-linux-x64-v7.1.tgz
+
+     - name: Extract cuDNN_7.1
+       unarchive:
+         copy: no
+         src: /opt/cudnn-9.0-linux-x64-v7.1.tgz
+         dest: /opt/
+
+     - name: Copy cuDNN libs
+       command: cp -a /opt/cuda/include/cudnn.h /usr/local/cuda/include/
+ 
+     - name: Copy cuDNN libs 
+       shell: cp -a /opt/cuda/lib64/libcudnn* /usr/local/cuda/lib64/
+       args:
+         executable: /bin/bash 
+       tags:
+        - test
+
+     - name: Add global $PATH for cuda
+       lineinfile:
+         dest: /etc/profile
+         line: '{{ item }}'
+         insertafter: 'unset -f pathmunge'
+       with_items:
+         - 'export PATH=/usr/local/cuda-9.0/bin${PATH:+:${PATH}}$:/bin'
+         - 'export LD_LIBRARY_PATH=/usr/local/cuda-9.0/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}'
+       tags:
+         - cuda
