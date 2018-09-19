@@ -1,0 +1,32 @@
+---
+- hosts: server
+  become: true  # use sudo
+  tasks:
+
+    - name: Install environment-modules repo.
+      yum:
+        name: environment-modules
+        state: present
+
+    - name: Install epel-release repo.
+      yum:
+        name: epel-release
+        state: present
+
+    - name: Install Lmod repo.
+      yum:
+        name: Lmod
+        state: present
+
+    - name: Creates directory
+      file: path=/remote.bin state=directory
+
+    - name: mount remote.bin
+      mount:
+        path: /remote.bin
+        src: 192.168.5.30:/volume1/Shared_Home/bin
+        fstype: nfs
+        state: mounted
+
+    - name: modify bash login script to load up easybuild path
+      command: /usr/bin/cp -cu /remote.bin/LMOD/profile /usr/share/lmod/lmod/init/
