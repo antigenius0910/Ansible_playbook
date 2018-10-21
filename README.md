@@ -35,3 +35,21 @@ hosts: server #Group Name need to match with host file
 $ansible-playbook -vv sssd.yml  
 
 ---
+
+# inject_rsa
+
+inject RSA keys to local servers
+
+----------------------
+Command Line Arguments
+----------------------
+```
+Example:  ./inject_rsa.sh TARGET_MACHINE_SUDO_USER TARGET_MACHINE_IP PASSWORD
+```
+----------------------
+Distributed mode
+----------------------
+```
+cat AssetsExport-3.csv | grep Ubuntu | awk '{print $1}' | sed s'/,.*//' > ./list.txt
+
+```
