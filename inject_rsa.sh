@@ -1,4 +1,4 @@
-#!/bin/sh 
+#!/bin/bash 
 set -x
 
 REMOTE_HOSTNAME_SUDO_USER=$1
