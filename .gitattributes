@@ -1,2 +1,2 @@
 * linguist-vendored
-*.yml linguist-vendored=false
+*.sh linguist-vendored=false
