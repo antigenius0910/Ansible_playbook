@@ -1,20 +1,9 @@
-#!/bin/bash 
+#!/bin/bash
 set -x
 
 REMOTE_HOSTNAME_SUDO_USER=$1
 REMOTE_HOSTNAME=$2
 PASSWORD=$3
-
-EXPECT0=$(expect -c "
-spawn ssh -t $REMOTE_HOSTNAME_SUDO_USER@$REMOTE_HOSTNAME "'hostname'"
-
-expect \"(yes/no)\"
-send \"yes\r\"
-set timeout 1
-expect \"password:\"
-send \"$PASSWORD\r\"
-set timeout 1
-")
 
 EXPECT1=$(expect -c "
 spawn ssh -t $REMOTE_HOSTNAME_SUDO_USER@$REMOTE_HOSTNAME "'sudo mkdir -p /root/.ssh/'"
@@ -26,7 +15,7 @@ set timeout 1
 expect \"$REMOTE_HOSTNAME_SUDO_USER:\"
 send \"$PASSWORD\r\"
 set timeout 1
-send \"logout\"
+interact
 ")
 
 EXPECT2=$(expect -c "
@@ -39,6 +28,7 @@ set timeout 2
 expect \"$REMOTE_HOSTNAME_SUDO_USER:\"
 send \"$PASSWORD\r\"
 set timeout 2
+interact
 ")
 
 sleep 2
@@ -53,6 +43,7 @@ set timeout 1
 expect \"$REMOTE_HOSTNAME_SUDO_USER:\"
 send \"$PASSWORD\r\"
 set timeout 1
+interact
 ")
 
 EXPECT4=$(expect -c "
@@ -65,6 +56,7 @@ set timeout 1
 expect \"$REMOTE_HOSTNAME_SUDO_USER:\"
 send \"$PASSWORD\r\"
 set timeout 1
+interact
 ")
 
 EXPECT5=$(expect -c "
@@ -77,6 +69,7 @@ set timeout 1
 expect \"$REMOTE_HOSTNAME_SUDO_USER:\"
 send \"$PASSWORD\r\"
 set timeout 1
+interact
 ")
 
 EXPECT6=$(expect -c "
@@ -89,6 +82,7 @@ set timeout 1
 expect \"$REMOTE_HOSTNAME_SUDO_USER:\"
 send \"$PASSWORD\r\"
 set timeout 1
+interact
 ")
 
 ssh root@$2 'hostname'
@@ -97,3 +91,5 @@ if [ $? == 0 ] ; then
 else
         echo "RSA key injection fail!!"
 fi
+
+exit 0
