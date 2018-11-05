@@ -29,4 +29,4 @@
         state: mounted
 
     - name: modify bash login script to load up easybuild path
-      command: /usr/bin/cp -cu /remote.bin/LMOD/profile /usr/share/lmod/lmod/init/
+      command: /usr/bin/cp -rf /remote.bin/LMOD/profile /usr/share/lmod/lmod/init/
