@@ -1,6 +1,13 @@
 #!/bin/bash
 set -x
 
+# Required parameters for running this script
+if [ $# -lt 1 ] || [ $# -gt 2 ]; then
+        echo "Usage : $0 <TARGET_MACHINE_SUDO_USER> <TARGET_MACHINE_SUDO_USER> <PASSWORD>"
+        exit 1
+fi
+
+
 REMOTE_HOSTNAME_SUDO_USER=$1
 REMOTE_HOSTNAME=$2
 PASSWORD=$3
