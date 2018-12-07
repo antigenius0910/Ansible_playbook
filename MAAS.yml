@@ -1,0 +1,43 @@
+---
+- hosts: server
+  become: true  # use sudo
+  tasks:
+
+
+     - name: Clear out prepend from /root/.ssh/authorized_keys
+       shell: 'sed -i -e "s/no-port..*ssh-rsa/ssh-rsa/" /root/.ssh/authorized_keys'
+
+     - name: Change hostname1 
+       shell: 'echo $HOSTNAME | sed "s/.maas//"'
+       register: hostname_without_maas
+
+     - name: Change hostname2
+       shell: "hostnamectl set-hostname {{ item }}.sparkcognition.com" 
+       with_items: "{{ hostname_without_maas.stdout_lines }}"
+
+     - name: Change config in /etc/cloud/cloud.cfg.d/50-curtin-networking.cfg
+       shell: 'sed -i -e "s/gateway: 172.29.100.10//" -e "s/8.8.8.8/192.168.5.6/" -e "s/maas/sparkcognition.com/" -e "s/\[\]/\n      - 192.168.5.6\n      gateway: 192.168.5.1/" /etc/cloud/cloud.cfg.d/50-curtin-networking.cfg'
+
+     - name: Remove DNS from /etc/resolv.conf
+       shell: 'sed -i -e "s/nameserver 8.8.8.8//" -e "s/maas//" /etc/resolv.conf'
+#       tags:
+#         - dns
+
+     - name: Apply route (Debian)
+       shell: 'netplan apply'
+       when: ansible_os_family == "Debian"
+
+     - name: Apply route (RedHat)
+       shell: 'sleep 1 && shutdown -r now "Reboot triggered by Ansible" && sleep 1'
+       async: 1
+       poll: 0
+       become: true
+#       reboot:
+#       when: ansible_os_family == "Redhat"
+#       local_action:
+#         module: wait_for
+#           host={{ ansible_ssh_host}}
+#           port=22
+#           delay=10
+#         become: false
+       when: ansible_distribution == "CentOS"
