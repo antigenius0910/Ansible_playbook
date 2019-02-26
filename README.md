@@ -72,16 +72,16 @@ Automate OSSEC agent installation
 
 *****security@*****-SecurityOnion:~$ sudo /var/ossec/bin/agent_control -l  
   
-   ID: 1182, Name: zalewski, IP: 192.168.5.222, Active  
-   ID: 1192, Name: shannon, IP: 192.168.5.80, Active  
-   ID: 1194, Name: targowski, IP: 192.168.5.135, Active  
-   ID: 1195, Name: oracle12server, IP: 192.168.5.59, Active  
+   ID: 1182, Name: zalewski, IP: 192.168.5.x, Active  
+   ID: 1192, Name: shannon, IP: 192.168.5.x, Active  
+   ID: 1194, Name: targowski, IP: 192.168.5.x, Active  
+   ID: 1195, Name: oracle12server, IP: 192.168.5.x, Active  
 
 **Troubleshooting steps**  
 
 If agent shows "Never connected" on OSSEC server.  
   
-e.g. ID: 1041, Name: wirth, IP: 192.168.5.72, Never connected  
+e.g. ID: 1041, Name: wirth, IP: 192.168.5.x, Never connected  
   
 Check logs and see what server and agent complain  
   
